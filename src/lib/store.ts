@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { NutritionLog, Habit, Workout, DailyGoals, WeeklyReport } from './types';
+import { NutritionLog, Habit, Workout, DailyGoals, WeeklyReport, UserProfile } from './types';
 
 const STORAGE_KEYS = {
   MEALS: 'fit_app_meals',
@@ -10,6 +10,7 @@ const STORAGE_KEYS = {
   GOALS: 'fit_app_goals',
   REPORTS: 'fit_app_weekly_reports',
   API_KEY: 'fit_app_gemini_key',
+  PROFILE: 'fit_app_profile',
 };
 
 const DEFAULT_GOALS: DailyGoals = {
@@ -23,6 +24,19 @@ const getTodayString = (offsetDays = 0) => {
   const d = new Date();
   d.setDate(d.getDate() - offsetDays);
   return d.toISOString().split('T')[0];
+};
+
+const DEFAULT_PROFILE: UserProfile = {
+  age: 37,
+  weight: 81,
+  targetWeight: 78,
+  height: 180,
+  gender: 'male',
+  weightHistory: [
+    { date: getTodayString(14), weight: 82.5 },
+    { date: getTodayString(7), weight: 81.7 },
+    { date: getTodayString(0), weight: 81.0 },
+  ],
 };
 
 const INITIAL_HABITS: Habit[] = [
@@ -61,13 +75,13 @@ const INITIAL_HABITS: Habit[] = [
   },
   {
     id: 'h4',
-    title: 'Dehnen / Mobilität (15 Min)',
+    title: 'Pre-Meal Exercise Snack',
     category: 'fitness',
     icon: 'Activity',
-    targetPerWeek: 5,
-    completedDates: [getTodayString(1), getTodayString(3)],
-    currentStreak: 0,
-    bestStreak: 4,
+    targetPerWeek: 7,
+    completedDates: [getTodayString(0), getTodayString(1)],
+    currentStreak: 2,
+    bestStreak: 5,
     createdAt: getTodayString(10),
   },
 ];
@@ -99,19 +113,6 @@ const INITIAL_MEALS: NutritionLog[] = [
     timestamp: new Date(Date.now() - 1 * 3600 * 1000).toISOString(),
     date: getTodayString(0),
   },
-  {
-    id: 'm3',
-    name: 'Lachsfilet mit Süßkartoffeln & Avocado',
-    calories: 680,
-    protein: 42,
-    carbs: 45,
-    fat: 28,
-    healthScore: 9.5,
-    scoreReasoning: 'Reich an gesunden Omega-3 Fettsäuren, hochwertigem Protein und Mikronährstoffen.',
-    healthTip: 'Perfekt ausbalanciertes Abendessen für die Muskelregeneration.',
-    timestamp: new Date(Date.now() - 28 * 3600 * 1000).toISOString(),
-    date: getTodayString(1),
-  }
 ];
 
 const INITIAL_WORKOUTS: Workout[] = [
@@ -125,16 +126,6 @@ const INITIAL_WORKOUTS: Workout[] = [
     timestamp: new Date(Date.now() - 3 * 3600 * 1000).toISOString(),
     notes: 'Bankdrücken 4x8 @ 80kg, Klimmzüge 4x10, Schulterdrücken',
   },
-  {
-    id: 'w2',
-    title: 'Intervall-Lauf (HIIT)',
-    type: 'hiit',
-    durationMinutes: 30,
-    caloriesBurned: 310,
-    date: getTodayString(1),
-    timestamp: new Date(Date.now() - 26 * 3600 * 1000).toISOString(),
-    notes: '8x 400m Sprints mit 1 Min Gehpause',
-  }
 ];
 
 export function useAppStore() {
@@ -143,10 +134,10 @@ export function useAppStore() {
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [goals, setGoals] = useState<DailyGoals>(DEFAULT_GOALS);
   const [weeklyReports, setWeeklyReports] = useState<WeeklyReport[]>([]);
+  const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
   const [geminiApiKey, setGeminiApiKey] = useState<string>('');
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
-  // Load from LocalStorage on client mount
   useEffect(() => {
     try {
       const storedMeals = localStorage.getItem(STORAGE_KEYS.MEALS);
@@ -154,6 +145,7 @@ export function useAppStore() {
       const storedWorkouts = localStorage.getItem(STORAGE_KEYS.WORKOUTS);
       const storedGoals = localStorage.getItem(STORAGE_KEYS.GOALS);
       const storedReports = localStorage.getItem(STORAGE_KEYS.REPORTS);
+      const storedProfile = localStorage.getItem(STORAGE_KEYS.PROFILE);
       const storedKey = localStorage.getItem(STORAGE_KEYS.API_KEY);
 
       setMeals(storedMeals ? JSON.parse(storedMeals) : INITIAL_MEALS);
@@ -161,6 +153,7 @@ export function useAppStore() {
       setWorkouts(storedWorkouts ? JSON.parse(storedWorkouts) : INITIAL_WORKOUTS);
       setGoals(storedGoals ? JSON.parse(storedGoals) : DEFAULT_GOALS);
       setWeeklyReports(storedReports ? JSON.parse(storedReports) : []);
+      setProfile(storedProfile ? JSON.parse(storedProfile) : DEFAULT_PROFILE);
       if (storedKey) setGeminiApiKey(storedKey);
     } catch (e) {
       console.error('Failed to load local data', e);
@@ -169,7 +162,24 @@ export function useAppStore() {
     }
   }, []);
 
-  // Save changes to LocalStorage
+  const updateProfile = (updatedProfile: Partial<UserProfile>) => {
+    const newProfile = { ...profile, ...updatedProfile };
+    setProfile(newProfile);
+    localStorage.setItem(STORAGE_KEYS.PROFILE, JSON.stringify(newProfile));
+  };
+
+  const addWeightLog = (weight: number, dateStr: string = getTodayString(0)) => {
+    const newHistory = [...profile.weightHistory.filter(w => w.date !== dateStr), { date: dateStr, weight }];
+    newHistory.sort((a, b) => a.date.localeCompare(b.date));
+    const newProfile: UserProfile = {
+      ...profile,
+      weight,
+      weightHistory: newHistory,
+    };
+    setProfile(newProfile);
+    localStorage.setItem(STORAGE_KEYS.PROFILE, JSON.stringify(newProfile));
+  };
+
   const addMeal = (meal: Omit<NutritionLog, 'id'>) => {
     const newMeal: NutritionLog = { ...meal, id: 'm_' + Date.now() };
     const updated = [newMeal, ...meals];
@@ -192,16 +202,14 @@ export function useAppStore() {
         ? h.completedDates.filter(d => d !== date)
         : [...h.completedDates, date];
 
-      // Calculate streak
       let streak = 0;
       let checkDate = new Date();
       while (true) {
-        const dateStr = checkDate.toISOString().split('T')[0];
-        if (newDates.includes(dateStr)) {
+        const dStr = checkDate.toISOString().split('T')[0];
+        if (newDates.includes(dStr)) {
           streak++;
           checkDate.setDate(checkDate.getDate() - 1);
-        } else if (dateStr === date && !isDone) {
-          // just added today
+        } else if (dStr === date && !isDone) {
           streak++;
           checkDate.setDate(checkDate.getDate() - 1);
         } else {
@@ -278,7 +286,10 @@ export function useAppStore() {
     workouts,
     goals,
     weeklyReports,
+    profile,
     geminiApiKey,
+    updateProfile,
+    addWeightLog,
     addMeal,
     deleteMeal,
     toggleHabit,

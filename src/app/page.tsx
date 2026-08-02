@@ -19,7 +19,10 @@ export default function Home() {
     workouts,
     goals,
     weeklyReports,
+    profile,
     geminiApiKey,
+    updateProfile,
+    addWeightLog,
     addMeal,
     deleteMeal,
     toggleHabit,
@@ -40,7 +43,6 @@ export default function Home() {
 
   const todayStr = getTodayString(0);
 
-  // Check if running on iOS / Standalone
   useEffect(() => {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
     const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
@@ -84,9 +86,11 @@ export default function Home() {
             habits={habits}
             workouts={workouts}
             goals={goals}
+            profile={profile}
             todayDate={todayStr}
             onToggleHabit={toggleHabit}
             onNavigateTab={(tab) => setActiveTab(tab)}
+            onAddWeightLog={addWeightLog}
           />
         )}
 
@@ -120,6 +124,7 @@ export default function Home() {
             workouts={workouts}
             goals={goals}
             reports={weeklyReports}
+            profile={profile}
             geminiApiKey={geminiApiKey}
             onAddReport={addWeeklyReport}
           />
@@ -129,7 +134,7 @@ export default function Home() {
       {/* iOS Floating Dock Navigation */}
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
 
-      {/* Settings & Install Guide Modal */}
+      {/* Settings & Profile Modal */}
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
@@ -137,6 +142,9 @@ export default function Home() {
         onSaveApiKey={saveApiKey}
         goals={goals}
         onUpdateGoals={updateGoals}
+        profile={profile}
+        onUpdateProfile={updateProfile}
+        onAddWeightLog={addWeightLog}
         showInstallGuideOnly={showPwaGuideOnly}
       />
     </div>

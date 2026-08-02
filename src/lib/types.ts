@@ -1,3 +1,12 @@
+export interface UserProfile {
+  age: number;
+  weight: number; // in kg
+  targetWeight?: number;
+  height?: number; // in cm
+  gender?: 'male' | 'female' | 'other';
+  weightHistory: Array<{ date: string; weight: number }>;
+}
+
 export interface NutritionLog {
   id: string;
   name: string;

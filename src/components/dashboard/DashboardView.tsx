@@ -1,21 +1,23 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { CalorieRing } from './CalorieRing';
 import { HabitQuickCheck } from './HabitQuickCheck';
-import { NutritionLog, Habit, Workout, DailyGoals } from '@/lib/types';
+import { NutritionLog, Habit, Workout, DailyGoals, UserProfile } from '@/lib/types';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Camera, Dumbbell, Sparkles, Plus, Utensils, Heart } from 'lucide-react';
+import { Camera, Dumbbell, Sparkles, Scale, TrendingDown, Check } from 'lucide-react';
 
 interface DashboardViewProps {
   meals: NutritionLog[];
   habits: Habit[];
   workouts: Workout[];
   goals: DailyGoals;
+  profile: UserProfile;
   todayDate: string;
   onToggleHabit: (id: string) => void;
   onNavigateTab: (tab: 'nutrition' | 'habits' | 'weekly') => void;
+  onAddWeightLog: (weight: number) => void;
 }
 
 export function DashboardView({
@@ -23,10 +25,15 @@ export function DashboardView({
   habits,
   workouts,
   goals,
+  profile,
   todayDate,
   onToggleHabit,
   onNavigateTab,
+  onAddWeightLog,
 }: DashboardViewProps) {
+  const [weightInput, setWeightInput] = useState(profile.weight?.toString() || '81');
+  const [isSaved, setIsSaved] = useState(false);
+
   const todayMeals = meals.filter((m) => m.date === todayDate);
   const todayWorkouts = workouts.filter((w) => w.date === todayDate);
 
@@ -35,6 +42,16 @@ export function DashboardView({
   const currentCarbs = todayMeals.reduce((sum, m) => sum + m.carbs, 0);
   const currentFat = todayMeals.reduce((sum, m) => sum + m.fat, 0);
   const caloriesBurned = todayWorkouts.reduce((sum, w) => sum + w.caloriesBurned, 0);
+
+  const handleSaveWeight = (e: React.FormEvent) => {
+    e.preventDefault();
+    const w = parseFloat(weightInput);
+    if (!isNaN(w) && w > 0) {
+      onAddWeightLog(w);
+      setIsSaved(true);
+      setTimeout(() => setIsSaved(false), 2000);
+    }
+  };
 
   return (
     <div className="space-y-6 pb-24">
@@ -47,6 +64,43 @@ export function DashboardView({
         fat={{ current: currentFat, target: goals.fat }}
         caloriesBurned={caloriesBurned}
       />
+
+      {/* Weight Tracker Schnell-Eintrag */}
+      <Card className="bg-zinc-900/90 border-zinc-800 p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <Scale className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center space-x-2">
+                <h3 className="font-bold text-white text-sm">Gewicht</h3>
+                <span className="text-[10px] text-zinc-400">({profile.age} Jahre)</span>
+              </div>
+              <p className="text-xs text-zinc-400">
+                Aktuell: <strong className="text-white">{profile.weight} kg</strong>
+                {profile.targetWeight && (
+                  <span> (Ziel: <strong className="text-emerald-400">{profile.targetWeight} kg</strong>)</span>
+                )}
+              </p>
+            </div>
+          </div>
+
+          <form onSubmit={handleSaveWeight} className="flex items-center space-x-2">
+            <input
+              type="number"
+              step="0.1"
+              value={weightInput}
+              onChange={(e) => setWeightInput(e.target.value)}
+              className="w-16 px-2 py-1 rounded-lg bg-zinc-950 border border-zinc-800 text-white text-xs font-bold text-center focus:outline-none focus:border-emerald-500"
+            />
+            <span className="text-xs text-zinc-400 font-medium">kg</span>
+            <Button type="submit" size="sm" className="h-8 px-2.5 text-xs">
+              {isSaved ? <Check className="w-3.5 h-3.5" /> : 'Log'}
+            </Button>
+          </form>
+        </div>
+      </Card>
 
       {/* Quick Action CTA Cards */}
       <div className="grid grid-cols-2 gap-3">

@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Loader2, Calendar, Dumbbell, Flame, Target, Lightbulb, Heart, CheckCircle } from 'lucide-react';
-import { NutritionLog, Habit, Workout, DailyGoals, WeeklyReport } from '@/lib/types';
+import { Sparkles, Loader2, Calendar, Target, Scale } from 'lucide-react';
+import { NutritionLog, Habit, Workout, DailyGoals, WeeklyReport, UserProfile } from '@/lib/types';
 
 interface WeeklyViewProps {
   meals: NutritionLog[];
@@ -13,6 +13,7 @@ interface WeeklyViewProps {
   workouts: Workout[];
   goals: DailyGoals;
   reports: WeeklyReport[];
+  profile: UserProfile;
   geminiApiKey: string;
   onAddReport: (report: Omit<WeeklyReport, 'id'>) => void;
 }
@@ -23,13 +24,13 @@ export function WeeklyView({
   workouts,
   goals,
   reports,
+  profile,
   geminiApiKey,
   onAddReport,
 }: WeeklyViewProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Calculate 7-day stats
   const today = new Date();
   const last7DaysDates = Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
@@ -52,7 +53,6 @@ export function WeeklyView({
     ? Number((last7DaysMeals.reduce((acc, m) => acc + (m.healthScore || 8), 0) / last7DaysMeals.length).toFixed(1))
     : 8.5;
 
-  // Habit consistency: percentage of total habit targets completed in last 7 days
   let totalHabitOpportunities = habits.length * 7;
   let totalHabitsCompleted = 0;
   habits.forEach((h) => {
@@ -84,6 +84,7 @@ export function WeeklyView({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           stats: statsData,
+          userProfile: profile,
           userApiKey: geminiApiKey,
         }),
       });
@@ -127,7 +128,7 @@ export function WeeklyView({
         </div>
         <h2 className="text-xl font-bold text-white">7-Tage Wochenrückblick</h2>
         <p className="text-xs text-zinc-300 mt-1">
-          Analysiere deinen Fortschritt und erhalte von Gemini 3 persönliche Optimierungstipps.
+          Profil: {profile.age} Jahre • {profile.weight} kg • Auswertung mit Gemini 3.5 KI
         </p>
       </div>
 
@@ -160,12 +161,12 @@ export function WeeklyView({
         </Card>
 
         <Card className="bg-zinc-900/80 border-zinc-800 p-4">
-          <span className="text-[10px] uppercase font-bold text-amber-400 block mb-1">Ø Ernährungsscore</span>
+          <span className="text-[10px] uppercase font-bold text-amber-400 block mb-1">Gewicht & Score</span>
           <div className="flex items-baseline space-x-1">
-            <span className="text-2xl font-black text-amber-400">{avgHealthScore}</span>
-            <span className="text-xs text-zinc-500">/ 10</span>
+            <span className="text-2xl font-black text-amber-400">{profile.weight}</span>
+            <span className="text-xs text-zinc-500">kg</span>
           </div>
-          <p className="text-[10px] text-zinc-500 mt-1">Nährwertqualität</p>
+          <p className="text-[10px] text-zinc-500 mt-1">Nährwert-Score: {avgHealthScore}/10</p>
         </Card>
       </div>
 
@@ -214,12 +215,10 @@ export function WeeklyView({
           </CardHeader>
 
           <CardContent className="space-y-5 pt-4">
-            {/* Narrative text block */}
             <div className="p-4 rounded-xl bg-zinc-950/70 border border-zinc-800 text-sm text-zinc-200 leading-relaxed space-y-2">
               <p>{latestReport.narrative}</p>
             </div>
 
-            {/* 3 Actionable Tips */}
             <div>
               <h4 className="text-sm font-bold text-white mb-3 flex items-center">
                 <Target className="w-4 h-4 mr-2 text-emerald-400" />
