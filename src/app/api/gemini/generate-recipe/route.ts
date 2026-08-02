@@ -8,7 +8,6 @@ export async function POST(req: NextRequest) {
     const apiKey = userApiKey || process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
-      // Mock response if no API Key
       return NextResponse.json({
         recipes: [
           {
@@ -74,7 +73,7 @@ Antworte AUSSCHLIESSLICH im JSON-Format mit folgendem Schema.`;
     contents.push({ role: 'user', parts });
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.5-flash',
       contents,
       config: {
         responseMimeType: 'application/json',

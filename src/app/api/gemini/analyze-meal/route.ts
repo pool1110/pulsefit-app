@@ -12,7 +12,6 @@ export async function POST(req: NextRequest) {
     const apiKey = userApiKey || process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
-      // Return realistic mock response if API Key is not set yet
       return NextResponse.json({
         name: 'Gegrilltes Hähnchen mit Süßkartoffel & Salat',
         calories: 580,
@@ -28,12 +27,10 @@ export async function POST(req: NextRequest) {
     }
 
     const ai = new GoogleGenAI({ apiKey });
-
-    // Remove data:image/...;base64, prefix if present
     const base64Data = imageBase64.includes(',') ? imageBase64.split(',')[1] : imageBase64;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.5-flash',
       contents: [
         {
           role: 'user',

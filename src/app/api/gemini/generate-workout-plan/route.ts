@@ -8,7 +8,6 @@ export async function POST(req: NextRequest) {
     const apiKey = userApiKey || process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
-      // Mock 7-day workout plan
       return NextResponse.json({
         title: '7-Tage Büro- & Fitnessplan',
         goal: goal || 'Büro-Fitness & Fettverbrennung',
@@ -111,7 +110,7 @@ Antworte AUSSCHLIESSLICH im JSON-Format mit exakt folgender Struktur:
 }`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.5-flash',
       contents: [{ role: 'user', parts: [{ text: promptText }] }],
       config: {
         responseMimeType: 'application/json',
