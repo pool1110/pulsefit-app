@@ -3,16 +3,16 @@
 import { useState, useEffect } from 'react';
 import { NutritionLog, Habit, Workout, DailyGoals, WeeklyReport, UserProfile, WeeklyWorkoutPlan } from './types';
 
-const STORAGE_KEYS = {
-  MEALS: 'fit_app_meals',
-  HABITS: 'fit_app_habits',
-  WORKOUTS: 'fit_app_workouts',
-  GOALS: 'fit_app_goals',
-  REPORTS: 'fit_app_weekly_reports',
-  API_KEY: 'fit_app_gemini_key',
-  PROFILE: 'fit_app_profile',
-  WORKOUT_PLAN: 'fit_app_workout_plan',
-};
+export interface UserAccount {
+  id: string;
+  name: string;
+  avatarColor: string;
+}
+
+const DEFAULT_USERS: UserAccount[] = [
+  { id: 'u_default', name: 'Paul', avatarColor: 'emerald' },
+  { id: 'u_family2', name: 'Familienmitglied', avatarColor: 'cyan' },
+];
 
 const DEFAULT_GOALS: DailyGoals = {
   calories: 2200,
@@ -45,91 +45,28 @@ const INITIAL_HABITS: Habit[] = [
     id: 'h1',
     title: '2L Wasser trinken',
     category: 'nutrition',
-    icon: 'Droplet',
     targetPerWeek: 7,
-    completedDates: [getTodayString(0), getTodayString(1), getTodayString(2), getTodayString(3)],
-    currentStreak: 4,
+    completedDates: [getTodayString(0), getTodayString(1)],
+    currentStreak: 2,
     bestStreak: 7,
     createdAt: getTodayString(10),
   },
   {
     id: 'h2',
-    title: '10.000 Schritte',
+    title: 'Pre-Meal Exercise Snack',
     category: 'fitness',
-    icon: 'Footprints',
     targetPerWeek: 7,
-    completedDates: [getTodayString(0), getTodayString(1), getTodayString(2)],
-    currentStreak: 3,
-    bestStreak: 12,
-    createdAt: getTodayString(10),
-  },
-  {
-    id: 'h3',
-    title: '8h erholsamer Schlaf',
-    category: 'lifestyle',
-    icon: 'Moon',
-    targetPerWeek: 7,
-    completedDates: [getTodayString(0), getTodayString(2)],
+    completedDates: [getTodayString(0)],
     currentStreak: 1,
     bestStreak: 5,
     createdAt: getTodayString(10),
   },
-  {
-    id: 'h4',
-    title: 'Pre-Meal Exercise Snack',
-    category: 'fitness',
-    icon: 'Activity',
-    targetPerWeek: 7,
-    completedDates: [getTodayString(0), getTodayString(1)],
-    currentStreak: 2,
-    bestStreak: 5,
-    createdAt: getTodayString(10),
-  },
-];
-
-const INITIAL_MEALS: NutritionLog[] = [
-  {
-    id: 'm1',
-    name: 'Haferflocken mit Beeren & Whey',
-    calories: 450,
-    protein: 35,
-    carbs: 55,
-    fat: 8,
-    healthScore: 9,
-    scoreReasoning: 'Hervorragende Kombination aus komplexen Kohlenhydraten, hochwertigem Protein und Antioxidantien.',
-    healthTip: 'Füge noch einen Löffel Chiasamen für gesunde Omega-3 Fettsäuren hinzu.',
-    timestamp: new Date(Date.now() - 4 * 3600 * 1000).toISOString(),
-    date: getTodayString(0),
-  },
-  {
-    id: 'm2',
-    name: 'Hähnchenbrust mit Reis & Brokkoli',
-    calories: 620,
-    protein: 52,
-    carbs: 68,
-    fat: 12,
-    healthScore: 10,
-    scoreReasoning: 'Klassisches, nährstoffdichtes Fitness-Gericht. Hoher Proteingehalt und gute Ballaststoffversorgung.',
-    healthTip: 'Nutze etwas Olivenöl für gesunde ungesättigte Fettsäuren.',
-    timestamp: new Date(Date.now() - 1 * 3600 * 1000).toISOString(),
-    date: getTodayString(0),
-  },
-];
-
-const INITIAL_WORKOUTS: Workout[] = [
-  {
-    id: 'w1',
-    title: 'Oberkörper & Rumpf Krafttraining',
-    type: 'strength',
-    durationMinutes: 55,
-    caloriesBurned: 420,
-    date: getTodayString(0),
-    timestamp: new Date(Date.now() - 3 * 3600 * 1000).toISOString(),
-    notes: 'Bankdrücken 4x8 @ 80kg, Klimmzüge 4x10, Schulterdrücken',
-  },
 ];
 
 export function useAppStore() {
+  const [users, setUsers] = useState<UserAccount[]>(DEFAULT_USERS);
+  const [activeUserId, setActiveUserId] = useState<string>('u_default');
+
   const [meals, setMeals] = useState<NutritionLog[]>([]);
   const [habits, setHabits] = useState<Habit[]>([]);
   const [workouts, setWorkouts] = useState<Workout[]>([]);
@@ -140,41 +77,84 @@ export function useAppStore() {
   const [geminiApiKey, setGeminiApiKey] = useState<string>('');
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
+  // Load user list
   useEffect(() => {
     try {
-      const storedMeals = localStorage.getItem(STORAGE_KEYS.MEALS);
-      const storedHabits = localStorage.getItem(STORAGE_KEYS.HABITS);
-      const storedWorkouts = localStorage.getItem(STORAGE_KEYS.WORKOUTS);
-      const storedGoals = localStorage.getItem(STORAGE_KEYS.GOALS);
-      const storedReports = localStorage.getItem(STORAGE_KEYS.REPORTS);
-      const storedProfile = localStorage.getItem(STORAGE_KEYS.PROFILE);
-      const storedPlan = localStorage.getItem(STORAGE_KEYS.WORKOUT_PLAN);
-      const storedKey = localStorage.getItem(STORAGE_KEYS.API_KEY);
-
-      setMeals(storedMeals ? JSON.parse(storedMeals) : INITIAL_MEALS);
-      setHabits(storedHabits ? JSON.parse(storedHabits) : INITIAL_HABITS);
-      setWorkouts(storedWorkouts ? JSON.parse(storedWorkouts) : INITIAL_WORKOUTS);
-      setGoals(storedGoals ? JSON.parse(storedGoals) : DEFAULT_GOALS);
-      setWeeklyReports(storedReports ? JSON.parse(storedReports) : []);
-      setProfile(storedProfile ? JSON.parse(storedProfile) : DEFAULT_PROFILE);
-      if (storedPlan) setWorkoutPlanState(JSON.parse(storedPlan));
-      if (storedKey) setGeminiApiKey(storedKey);
+      const storedUsers = localStorage.getItem('fit_app_users');
+      const storedActiveId = localStorage.getItem('fit_app_active_user');
+      if (storedUsers) setUsers(JSON.parse(storedUsers));
+      if (storedActiveId) setActiveUserId(storedActiveId);
     } catch (e) {
-      console.error('Failed to load local data', e);
-    } finally {
-      setIsLoaded(true);
+      console.error(e);
     }
   }, []);
 
+  // Load data for active user
+  useEffect(() => {
+    try {
+      const prefix = `fit_app_${activeUserId}_`;
+      const storedMeals = localStorage.getItem(prefix + 'meals');
+      const storedHabits = localStorage.getItem(prefix + 'habits');
+      const storedWorkouts = localStorage.getItem(prefix + 'workouts');
+      const storedGoals = localStorage.getItem(prefix + 'goals');
+      const storedReports = localStorage.getItem(prefix + 'reports');
+      const storedProfile = localStorage.getItem(prefix + 'profile');
+      const storedPlan = localStorage.getItem(prefix + 'plan');
+      const storedKey = localStorage.getItem('fit_app_gemini_key');
+
+      setMeals(storedMeals ? JSON.parse(storedMeals) : []);
+      setHabits(storedHabits ? JSON.parse(storedHabits) : INITIAL_HABITS);
+      setWorkouts(storedWorkouts ? JSON.parse(storedWorkouts) : []);
+      setGoals(storedGoals ? JSON.parse(storedGoals) : DEFAULT_GOALS);
+      setWeeklyReports(storedReports ? JSON.parse(storedReports) : []);
+      setProfile(storedProfile ? JSON.parse(storedProfile) : DEFAULT_PROFILE);
+      setWorkoutPlanState(storedPlan ? JSON.parse(storedPlan) : null);
+      if (storedKey) setGeminiApiKey(storedKey);
+    } catch (e) {
+      console.error('Failed to load user data', e);
+    } finally {
+      setIsLoaded(true);
+    }
+  }, [activeUserId]);
+
+  const switchUser = (userId: string) => {
+    setActiveUserId(userId);
+    localStorage.setItem('fit_app_active_user', userId);
+  };
+
+  const addUser = (name: string) => {
+    const newUser: UserAccount = {
+      id: 'u_' + Date.now(),
+      name: name.trim(),
+      avatarColor: ['emerald', 'cyan', 'amber', 'purple', 'rose'][users.length % 5],
+    };
+    const updatedUsers = [...users, newUser];
+    setUsers(updatedUsers);
+    localStorage.setItem('fit_app_users', JSON.stringify(updatedUsers));
+    switchUser(newUser.id);
+  };
+
+  const deleteUser = (id: string) => {
+    if (users.length <= 1) return;
+    const updatedUsers = users.filter((u) => u.id !== id);
+    setUsers(updatedUsers);
+    localStorage.setItem('fit_app_users', JSON.stringify(updatedUsers));
+    if (activeUserId === id) {
+      switchUser(updatedUsers[0].id);
+    }
+  };
+
+  const prefix = `fit_app_${activeUserId}_`;
+
   const setWorkoutPlan = (plan: WeeklyWorkoutPlan) => {
     setWorkoutPlanState(plan);
-    localStorage.setItem(STORAGE_KEYS.WORKOUT_PLAN, JSON.stringify(plan));
+    localStorage.setItem(prefix + 'plan', JSON.stringify(plan));
   };
 
   const updateProfile = (updatedProfile: Partial<UserProfile>) => {
     const newProfile = { ...profile, ...updatedProfile };
     setProfile(newProfile);
-    localStorage.setItem(STORAGE_KEYS.PROFILE, JSON.stringify(newProfile));
+    localStorage.setItem(prefix + 'profile', JSON.stringify(newProfile));
   };
 
   const addWeightLog = (weight: number, dateStr: string = getTodayString(0)) => {
@@ -186,21 +166,21 @@ export function useAppStore() {
       weightHistory: newHistory,
     };
     setProfile(newProfile);
-    localStorage.setItem(STORAGE_KEYS.PROFILE, JSON.stringify(newProfile));
+    localStorage.setItem(prefix + 'profile', JSON.stringify(newProfile));
   };
 
   const addMeal = (meal: Omit<NutritionLog, 'id'>) => {
     const newMeal: NutritionLog = { ...meal, id: 'm_' + Date.now() };
     const updated = [newMeal, ...meals];
     setMeals(updated);
-    localStorage.setItem(STORAGE_KEYS.MEALS, JSON.stringify(updated));
+    localStorage.setItem(prefix + 'meals', JSON.stringify(updated));
     return newMeal;
   };
 
   const deleteMeal = (id: string) => {
     const updated = meals.filter(m => m.id !== id);
     setMeals(updated);
-    localStorage.setItem(STORAGE_KEYS.MEALS, JSON.stringify(updated));
+    localStorage.setItem(prefix + 'meals', JSON.stringify(updated));
   };
 
   const toggleHabit = (id: string, date: string = getTodayString(0)) => {
@@ -234,7 +214,7 @@ export function useAppStore() {
       };
     });
     setHabits(updated);
-    localStorage.setItem(STORAGE_KEYS.HABITS, JSON.stringify(updated));
+    localStorage.setItem(prefix + 'habits', JSON.stringify(updated));
   };
 
   const addHabit = (habitData: Omit<Habit, 'id' | 'completedDates' | 'currentStreak' | 'bestStreak' | 'createdAt'>) => {
@@ -248,48 +228,56 @@ export function useAppStore() {
     };
     const updated = [...habits, newHabit];
     setHabits(updated);
-    localStorage.setItem(STORAGE_KEYS.HABITS, JSON.stringify(updated));
+    localStorage.setItem(prefix + 'habits', JSON.stringify(updated));
   };
 
   const deleteHabit = (id: string) => {
     const updated = habits.filter(h => h.id !== id);
     setHabits(updated);
-    localStorage.setItem(STORAGE_KEYS.HABITS, JSON.stringify(updated));
+    localStorage.setItem(prefix + 'habits', JSON.stringify(updated));
   };
 
   const addWorkout = (workoutData: Omit<Workout, 'id'>) => {
     const newWorkout: Workout = { ...workoutData, id: 'w_' + Date.now() };
     const updated = [newWorkout, ...workouts];
     setWorkouts(updated);
-    localStorage.setItem(STORAGE_KEYS.WORKOUTS, JSON.stringify(updated));
+    localStorage.setItem(prefix + 'workouts', JSON.stringify(updated));
   };
 
   const deleteWorkout = (id: string) => {
     const updated = workouts.filter(w => w.id !== id);
     setWorkouts(updated);
-    localStorage.setItem(STORAGE_KEYS.WORKOUTS, JSON.stringify(updated));
+    localStorage.setItem(prefix + 'workouts', JSON.stringify(updated));
   };
 
   const updateGoals = (newGoals: DailyGoals) => {
     setGoals(newGoals);
-    localStorage.setItem(STORAGE_KEYS.GOALS, JSON.stringify(newGoals));
+    localStorage.setItem(prefix + 'goals', JSON.stringify(newGoals));
   };
 
   const saveApiKey = (key: string) => {
     setGeminiApiKey(key);
-    localStorage.setItem(STORAGE_KEYS.API_KEY, key);
+    localStorage.setItem('fit_app_gemini_key', key);
   };
 
   const addWeeklyReport = (report: Omit<WeeklyReport, 'id'>) => {
     const newReport: WeeklyReport = { ...report, id: 'rep_' + Date.now() };
     const updated = [newReport, ...weeklyReports];
     setWeeklyReports(updated);
-    localStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify(updated));
+    localStorage.setItem(prefix + 'reports', JSON.stringify(updated));
     return newReport;
   };
 
+  const activeUser = users.find((u) => u.id === activeUserId) || users[0];
+
   return {
     isLoaded,
+    users,
+    activeUser,
+    activeUserId,
+    switchUser,
+    addUser,
+    deleteUser,
     meals,
     habits,
     workouts,

@@ -14,6 +14,12 @@ import { Loader2 } from 'lucide-react';
 export default function Home() {
   const {
     isLoaded,
+    users,
+    activeUser,
+    activeUserId,
+    switchUser,
+    addUser,
+    deleteUser,
     meals,
     habits,
     workouts,
@@ -66,8 +72,12 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col selection:bg-emerald-500 selection:text-zinc-950">
-      {/* App Header */}
+      {/* App Header with Family Profile Switcher */}
       <Header
+        users={users}
+        activeUser={activeUser}
+        onSwitchUser={switchUser}
+        onAddUser={addUser}
         onOpenSettings={() => {
           setShowPwaGuideOnly(false);
           setIsSettingsOpen(true);
