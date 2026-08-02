@@ -1,9 +1,12 @@
 export interface UserProfile {
   age: number;
   weight: number; // in kg
-  targetWeight?: number;
+  targetWeight?: number; // in kg (z.B. 70 kg)
   height?: number; // in cm
   gender?: 'male' | 'female' | 'other';
+  fitnessGoal?: 'weight_loss' | 'muscle_gain' | 'maintain' | 'office_health';
+  dietPreference?: 'all' | 'vegetarian' | 'vegan' | 'low_carb' | 'high_protein';
+  onboardingCompleted?: boolean;
   weightHistory: Array<{ date: string; weight: number }>;
 }
 
@@ -13,13 +16,13 @@ export interface ExerciseItem {
   category: 'office' | 'strength' | 'cardio' | 'flexibility';
   targetMuscles: string;
   description: string;
-  defaultRepsOrDuration: string; // e.g. "3 Sätze x 15 Wdh." or "45 Sekunden"
+  defaultRepsOrDuration: string;
   equipment: 'none' | 'chair' | 'dumbbells' | 'gym';
 }
 
 export interface PlannedWorkoutDay {
-  dayName: string; // e.g. "Montag", "Dienstag"...
-  focus: string; // e.g. "Oberkörper & Büro-Snacks"
+  dayName: string;
+  focus: string;
   isRestDay: boolean;
   exercises: Array<{
     name: string;
@@ -43,12 +46,12 @@ export interface NutritionLog {
   protein: number;
   carbs: number;
   fat: number;
-  healthScore: number; // 1-10
+  healthScore: number;
   scoreReasoning: string;
   healthTip: string;
   imageUrl?: string;
-  timestamp: string; // ISO string
-  date: string; // YYYY-MM-DD
+  timestamp: string;
+  date: string;
 }
 
 export interface Habit {
@@ -56,8 +59,8 @@ export interface Habit {
   title: string;
   category: 'fitness' | 'nutrition' | 'mindset' | 'lifestyle';
   icon?: string;
-  targetPerWeek: number; // e.g. 7 days
-  completedDates: string[]; // YYYY-MM-DD strings
+  targetPerWeek: number;
+  completedDates: string[];
   currentStreak: number;
   bestStreak: number;
   createdAt: string;
@@ -69,16 +72,16 @@ export interface Workout {
   type: 'cardio' | 'strength' | 'flexibility' | 'hiit' | 'other';
   durationMinutes: number;
   caloriesBurned: number;
-  date: string; // YYYY-MM-DD
+  date: string;
   timestamp: string;
   notes?: string;
 }
 
 export interface DailyGoals {
   calories: number;
-  protein: number; // in g
-  carbs: number;   // in g
-  fat: number;     // in g
+  protein: number;
+  carbs: number;
+  fat: number;
 }
 
 export interface WeeklyReport {
@@ -89,8 +92,8 @@ export interface WeeklyReport {
   summary: {
     avgDailyCalories: number;
     totalWorkouts: number;
-    habitConsistencyRate: number; // 0 - 100%
-    avgNutritionScore: number; // 1 - 10
+    habitConsistencyRate: number;
+    avgNutritionScore: number;
   };
   narrative: string;
   tips: string[];

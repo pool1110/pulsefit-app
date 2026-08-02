@@ -9,6 +9,7 @@ import { NutritionView } from '@/components/nutrition/NutritionView';
 import { HabitsView } from '@/components/habits/HabitsView';
 import { WeeklyView } from '@/components/weekly/WeeklyView';
 import { SettingsModal } from '@/components/settings/SettingsModal';
+import { OnboardingModal } from '@/components/onboarding/OnboardingModal';
 import { Loader2 } from 'lucide-react';
 
 export default function Home() {
@@ -69,6 +70,14 @@ export default function Home() {
       </div>
     );
   }
+
+  const isOnboardingOpen = !profile.onboardingCompleted;
+
+  const handleCompleteOnboarding = (profileData: any, newGoals: any) => {
+    updateProfile(profileData);
+    updateGoals(newGoals);
+    addWeightLog(profileData.weight);
+  };
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col selection:bg-emerald-500 selection:text-zinc-950">
@@ -164,6 +173,14 @@ export default function Home() {
         onUpdateProfile={updateProfile}
         onAddWeightLog={addWeightLog}
         showInstallGuideOnly={showPwaGuideOnly}
+      />
+
+      {/* Onboarding Wizard Modal */}
+      <OnboardingModal
+        isOpen={isOnboardingOpen}
+        userName={activeUser.name}
+        currentProfile={profile}
+        onCompleteOnboarding={handleCompleteOnboarding}
       />
     </div>
   );
