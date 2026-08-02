@@ -24,11 +24,13 @@ export default function Home() {
     meals,
     habits,
     workouts,
+    sleepLogs,
     goals,
     weeklyReports,
     profile,
     workoutPlan,
     geminiApiKey,
+    addSleepLog,
     setWorkoutPlan,
     updateProfile,
     addWeightLog,
@@ -106,12 +108,15 @@ export default function Home() {
             meals={meals}
             habits={habits}
             workouts={workouts}
+            sleepLogs={sleepLogs}
             goals={goals}
             profile={profile}
             todayDate={todayStr}
             onToggleHabit={toggleHabit}
             onNavigateTab={(tab) => setActiveTab(tab)}
             onAddWeightLog={addWeightLog}
+            onAddSleepLog={addSleepLog}
+            onUpdateProfile={updateProfile}
           />
         )}
 

@@ -1,13 +1,20 @@
 export interface UserProfile {
   age: number;
-  weight: number; // in kg
-  targetWeight?: number; // in kg (z.B. 70 kg)
-  height?: number; // in cm
+  weight: number;
+  targetWeight?: number;
+  height?: number;
   gender?: 'male' | 'female' | 'other';
   fitnessGoal?: 'weight_loss' | 'muscle_gain' | 'maintain' | 'office_health';
   dietPreference?: 'all' | 'vegetarian' | 'vegan' | 'low_carb' | 'high_protein';
+  stepGoal?: number; // e.g. 6000 instead of 10000
   onboardingCompleted?: boolean;
   weightHistory: Array<{ date: string; weight: number }>;
+}
+
+export interface SleepLog {
+  date: string; // YYYY-MM-DD
+  hours: number;
+  quality: 'good' | 'average' | 'poor';
 }
 
 export interface ExerciseItem {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { NutritionLog, Habit, Workout, DailyGoals, WeeklyReport, UserProfile, WeeklyWorkoutPlan } from './types';
+import { NutritionLog, Habit, Workout, DailyGoals, WeeklyReport, UserProfile, WeeklyWorkoutPlan, SleepLog } from './types';
 
 export interface UserAccount {
   id: string;
@@ -30,9 +30,10 @@ const getTodayString = (offsetDays = 0) => {
 const DEFAULT_PROFILE: UserProfile = {
   age: 37,
   weight: 81,
-  targetWeight: 78,
+  targetWeight: 70,
   height: 180,
   gender: 'male',
+  stepGoal: 6000,
   weightHistory: [
     { date: getTodayString(14), weight: 82.5 },
     { date: getTodayString(7), weight: 81.7 },
@@ -70,6 +71,7 @@ export function useAppStore() {
   const [meals, setMeals] = useState<NutritionLog[]>([]);
   const [habits, setHabits] = useState<Habit[]>([]);
   const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const [sleepLogs, setSleepLogs] = useState<SleepLog[]>([]);
   const [goals, setGoals] = useState<DailyGoals>(DEFAULT_GOALS);
   const [weeklyReports, setWeeklyReports] = useState<WeeklyReport[]>([]);
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
@@ -77,7 +79,6 @@ export function useAppStore() {
   const [geminiApiKey, setGeminiApiKey] = useState<string>('');
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
-  // Load user list
   useEffect(() => {
     try {
       const storedUsers = localStorage.getItem('fit_app_users');
@@ -89,13 +90,13 @@ export function useAppStore() {
     }
   }, []);
 
-  // Load data for active user
   useEffect(() => {
     try {
       const prefix = `fit_app_${activeUserId}_`;
       const storedMeals = localStorage.getItem(prefix + 'meals');
       const storedHabits = localStorage.getItem(prefix + 'habits');
       const storedWorkouts = localStorage.getItem(prefix + 'workouts');
+      const storedSleep = localStorage.getItem(prefix + 'sleep');
       const storedGoals = localStorage.getItem(prefix + 'goals');
       const storedReports = localStorage.getItem(prefix + 'reports');
       const storedProfile = localStorage.getItem(prefix + 'profile');
@@ -105,6 +106,7 @@ export function useAppStore() {
       setMeals(storedMeals ? JSON.parse(storedMeals) : []);
       setHabits(storedHabits ? JSON.parse(storedHabits) : INITIAL_HABITS);
       setWorkouts(storedWorkouts ? JSON.parse(storedWorkouts) : []);
+      setSleepLogs(storedSleep ? JSON.parse(storedSleep) : []);
       setGoals(storedGoals ? JSON.parse(storedGoals) : DEFAULT_GOALS);
       setWeeklyReports(storedReports ? JSON.parse(storedReports) : []);
       setProfile(storedProfile ? JSON.parse(storedProfile) : DEFAULT_PROFILE);
@@ -116,6 +118,8 @@ export function useAppStore() {
       setIsLoaded(true);
     }
   }, [activeUserId]);
+
+  const prefix = `fit_app_${activeUserId}_`;
 
   const switchUser = (userId: string) => {
     setActiveUserId(userId);
@@ -144,7 +148,11 @@ export function useAppStore() {
     }
   };
 
-  const prefix = `fit_app_${activeUserId}_`;
+  const addSleepLog = (hours: number, quality: 'good' | 'average' | 'poor', dateStr: string = getTodayString(0)) => {
+    const newLogs = [...sleepLogs.filter((s) => s.date !== dateStr), { date: dateStr, hours, quality }];
+    setSleepLogs(newLogs);
+    localStorage.setItem(prefix + 'sleep', JSON.stringify(newLogs));
+  };
 
   const setWorkoutPlan = (plan: WeeklyWorkoutPlan) => {
     setWorkoutPlanState(plan);
@@ -281,11 +289,13 @@ export function useAppStore() {
     meals,
     habits,
     workouts,
+    sleepLogs,
     goals,
     weeklyReports,
     profile,
     workoutPlan,
     geminiApiKey,
+    addSleepLog,
     setWorkoutPlan,
     updateProfile,
     addWeightLog,

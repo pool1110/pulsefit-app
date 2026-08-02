@@ -4,39 +4,47 @@ import React, { useState } from 'react';
 import { CalorieRing } from './CalorieRing';
 import { HabitQuickCheck } from './HabitQuickCheck';
 import { WeightChartCard } from './WeightChartCard';
-import { NutritionLog, Habit, Workout, DailyGoals, UserProfile } from '@/lib/types';
+import { SleepTrackerWidget } from './SleepTrackerWidget';
+import { NutritionLog, Habit, Workout, DailyGoals, UserProfile, SleepLog } from '@/lib/types';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Camera, Dumbbell, Sparkles, Scale, Check } from 'lucide-react';
+import { Camera, Dumbbell, Sparkles, Scale, Check, Footprints } from 'lucide-react';
 
 interface DashboardViewProps {
   meals: NutritionLog[];
   habits: Habit[];
   workouts: Workout[];
+  sleepLogs: SleepLog[];
   goals: DailyGoals;
   profile: UserProfile;
   todayDate: string;
   onToggleHabit: (id: string) => void;
   onNavigateTab: (tab: 'nutrition' | 'habits' | 'weekly') => void;
   onAddWeightLog: (weight: number) => void;
+  onAddSleepLog: (hours: number, quality: 'good' | 'average' | 'poor') => void;
+  onUpdateProfile: (profile: Partial<UserProfile>) => void;
 }
 
 export function DashboardView({
   meals,
   habits,
   workouts,
+  sleepLogs,
   goals,
   profile,
   todayDate,
   onToggleHabit,
   onNavigateTab,
   onAddWeightLog,
+  onAddSleepLog,
+  onUpdateProfile,
 }: DashboardViewProps) {
   const [weightInput, setWeightInput] = useState(profile.weight?.toString() || '81');
   const [isSaved, setIsSaved] = useState(false);
 
   const todayMeals = meals.filter((m) => m.date === todayDate);
   const todayWorkouts = workouts.filter((w) => w.date === todayDate);
+  const todaySleep = sleepLogs.find((s) => s.date === todayDate);
 
   const currentCalories = todayMeals.reduce((sum, m) => sum + m.calories, 0);
   const currentProtein = todayMeals.reduce((sum, m) => sum + m.protein, 0);
@@ -54,8 +62,18 @@ export function DashboardView({
     }
   };
 
+  const handleStepGoalChange = (newGoal: number) => {
+    onUpdateProfile({ stepGoal: newGoal });
+  };
+
   return (
     <div className="space-y-6 pb-24">
+      {/* Morning Sleep Query Widget */}
+      <SleepTrackerWidget
+        todaySleepLog={todaySleep}
+        onSaveSleep={onAddSleepLog}
+      />
+
       {/* Calorie & Macro Progress */}
       <CalorieRing
         currentCalories={currentCalories}
@@ -103,6 +121,32 @@ export function DashboardView({
         </div>
       </Card>
 
+      {/* Step Goal Customizer Card (Alternative to 10k steps) */}
+      <Card className="bg-zinc-900/90 border-zinc-800 p-3.5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Footprints className="w-4 h-4 text-emerald-400" />
+            <h4 className="text-xs font-bold text-white">Schrittziel anpassen</h4>
+          </div>
+
+          <div className="flex space-x-1">
+            {[5000, 6000, 7500, 10000].map((goalVal) => (
+              <button
+                key={goalVal}
+                onClick={() => handleStepGoalChange(goalVal)}
+                className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                  (profile.stepGoal || 6000) === goalVal
+                    ? 'bg-emerald-500 text-zinc-950 font-black'
+                    : 'bg-zinc-950 text-zinc-400 border border-zinc-800 hover:text-white'
+                }`}
+              >
+                {goalVal / 1000}k
+              </button>
+            ))}
+          </div>
+        </div>
+      </Card>
+
       {/* Visual Weight Trend Chart */}
       <WeightChartCard profile={profile} />
 
@@ -138,49 +182,6 @@ export function DashboardView({
         onToggleHabit={onToggleHabit}
         onGoToHabitsTab={() => onNavigateTab('habits')}
       />
-
-      {/* Today Workouts Summary */}
-      <Card className="bg-zinc-900/90 border-zinc-800">
-        <CardHeader className="pb-3 flex flex-row items-center justify-between">
-          <CardTitle className="text-base font-bold flex items-center space-x-2">
-            <Dumbbell className="w-4 h-4 text-cyan-400" />
-            <span>Heutige Workouts ({todayWorkouts.length})</span>
-          </CardTitle>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onNavigateTab('habits')}
-            className="text-xs text-zinc-400 hover:text-cyan-400 p-1 h-auto"
-          >
-            + Eintragen
-          </Button>
-        </CardHeader>
-
-        <CardContent className="space-y-2">
-          {todayWorkouts.length === 0 ? (
-            <div className="text-center py-4 text-zinc-500 text-xs">
-              Noch kein Training für heute eingetragen.
-            </div>
-          ) : (
-            todayWorkouts.map((workout) => (
-              <div
-                key={workout.id}
-                className="p-3 rounded-xl bg-zinc-950/50 border border-zinc-800/80 flex items-center justify-between"
-              >
-                <div>
-                  <h4 className="text-sm font-semibold text-white">{workout.title}</h4>
-                  <p className="text-xs text-zinc-400">
-                    {workout.durationMinutes} Min • {workout.caloriesBurned} kcal verbrannt
-                  </p>
-                </div>
-                <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
-                  {workout.type}
-                </span>
-              </div>
-            ))
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }
