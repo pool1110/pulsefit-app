@@ -5,9 +5,10 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Habit, Workout } from '@/lib/types';
-import { CheckCircle2, Circle, Flame, Plus, Dumbbell, Trash2, Trophy, Calendar } from 'lucide-react';
+import { CheckCircle2, Circle, Flame, Plus, Dumbbell, Trash2, Trophy, Calendar, Timer } from 'lucide-react';
 import { AddHabitModal } from './AddHabitModal';
 import { AddWorkoutModal } from './AddWorkoutModal';
+import { WorkoutTimerModal } from './WorkoutTimerModal';
 import confetti from 'canvas-confetti';
 
 interface HabitsViewProps {
@@ -33,6 +34,7 @@ export function HabitsView({
 }: HabitsViewProps) {
   const [isHabitModalOpen, setIsHabitModalOpen] = useState(false);
   const [isWorkoutModalOpen, setIsWorkoutModalOpen] = useState(false);
+  const [isTimerModalOpen, setIsTimerModalOpen] = useState(false);
   const [filterCategory, setFilterCategory] = useState<string>('all');
 
   const handleToggle = (id: string, isCurrentlyDone: boolean) => {
@@ -57,6 +59,16 @@ export function HabitsView({
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-white">Habits & Workouts</h2>
         <div className="flex space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsTimerModalOpen(true)}
+            className="border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+            title="Pausen- & Exercise-Timer"
+          >
+            <Timer className="w-4 h-4 mr-1" />
+            Timer
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -246,6 +258,10 @@ export function HabitsView({
         isOpen={isWorkoutModalOpen}
         onClose={() => setIsWorkoutModalOpen(false)}
         onAddWorkout={onAddWorkout}
+      />
+      <WorkoutTimerModal
+        isOpen={isTimerModalOpen}
+        onClose={() => setIsTimerModalOpen(false)}
       />
     </div>
   );

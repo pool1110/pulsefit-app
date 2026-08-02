@@ -98,6 +98,8 @@ export default function Home() {
           <NutritionView
             meals={meals}
             todayDate={todayStr}
+            targetCalories={goals.calories}
+            targetProtein={goals.protein}
             onAddMeal={addMeal}
             onDeleteMeal={deleteMeal}
             geminiApiKey={geminiApiKey}

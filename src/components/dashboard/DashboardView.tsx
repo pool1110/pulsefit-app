@@ -3,10 +3,11 @@
 import React, { useState } from 'react';
 import { CalorieRing } from './CalorieRing';
 import { HabitQuickCheck } from './HabitQuickCheck';
+import { WeightChartCard } from './WeightChartCard';
 import { NutritionLog, Habit, Workout, DailyGoals, UserProfile } from '@/lib/types';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Camera, Dumbbell, Sparkles, Scale, TrendingDown, Check } from 'lucide-react';
+import { Camera, Dumbbell, Sparkles, Scale, Check } from 'lucide-react';
 
 interface DashboardViewProps {
   meals: NutritionLog[];
@@ -101,6 +102,9 @@ export function DashboardView({
           </form>
         </div>
       </Card>
+
+      {/* Visual Weight Trend Chart */}
+      <WeightChartCard profile={profile} />
 
       {/* Quick Action CTA Cards */}
       <div className="grid grid-cols-2 gap-3">

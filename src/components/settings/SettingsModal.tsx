@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { X, Key, Share, PlusSquare, Check, Sparkles, Smartphone, User, Scale } from 'lucide-react';
+import { X, Key, Share, PlusSquare, Check, Sparkles, Smartphone, User, Scale, Download, Upload } from 'lucide-react';
 import { DailyGoals, UserProfile } from '@/lib/types';
 
 interface SettingsModalProps {
@@ -33,7 +33,7 @@ export function SettingsModal({
 }: SettingsModalProps) {
   const [apiKeyInput, setApiKeyInput] = useState(geminiApiKey);
   const [keySaved, setKeySaved] = useState(false);
-  const [activeTab, setActiveTab] = useState<'profile' | 'api' | 'goals' | 'pwa'>(
+  const [activeTab, setActiveTab] = useState<'profile' | 'api' | 'goals' | 'backup' | 'pwa'>(
     showInstallGuideOnly ? 'pwa' : 'profile'
   );
 
@@ -46,8 +46,51 @@ export function SettingsModal({
   const [weightInput, setWeightInput] = useState(profile.weight || 81);
   const [targetWeightInput, setTargetWeightInput] = useState(profile.targetWeight || 78);
   const [profileSaved, setProfileSaved] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
+
+  const handleExportData = () => {
+    const backupData = {
+      meals: localStorage.getItem('fit_app_meals'),
+      habits: localStorage.getItem('fit_app_habits'),
+      workouts: localStorage.getItem('fit_app_workouts'),
+      goals: localStorage.getItem('fit_app_goals'),
+      reports: localStorage.getItem('fit_app_weekly_reports'),
+      profile: localStorage.getItem('fit_app_profile'),
+      exportedAt: new Date().toISOString(),
+    };
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", `pulsefit_backup_${new Date().toISOString().split('T')[0]}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+  };
+
+  const handleImportData = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const data = JSON.parse(event.target?.result as string);
+        if (data.meals) localStorage.setItem('fit_app_meals', data.meals);
+        if (data.habits) localStorage.setItem('fit_app_habits', data.habits);
+        if (data.workouts) localStorage.setItem('fit_app_workouts', data.workouts);
+        if (data.goals) localStorage.setItem('fit_app_goals', data.goals);
+        if (data.reports) localStorage.setItem('fit_app_weekly_reports', data.reports);
+        if (data.profile) localStorage.setItem('fit_app_profile', data.profile);
+        alert('Daten erfolgreich wiederhergestellt! Seite wird neu geladen.');
+        window.location.reload();
+      } catch (err) {
+        alert('Ungültige Backup-Datei.');
+      }
+    };
+    reader.readAsText(file);
+  };
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,6 +165,16 @@ export function SettingsModal({
             Tagesziele
           </button>
           <button
+            onClick={() => setActiveTab('backup')}
+            className={`flex-1 py-2.5 px-3 text-xs font-semibold border-b-2 whitespace-nowrap transition-colors ${
+              activeTab === 'backup'
+                ? 'border-emerald-500 text-emerald-400'
+                : 'border-transparent text-zinc-400 hover:text-zinc-200'
+            }`}
+          >
+            Backup
+          </button>
+          <button
             onClick={() => setActiveTab('pwa')}
             className={`flex-1 py-2.5 px-3 text-xs font-semibold border-b-2 whitespace-nowrap transition-colors ${
               activeTab === 'pwa'
@@ -129,7 +182,7 @@ export function SettingsModal({
                 : 'border-transparent text-zinc-400 hover:text-zinc-200'
             }`}
           >
-            iOS PWA Guide
+            iOS Guide
           </button>
         </div>
 
@@ -200,7 +253,6 @@ export function SettingsModal({
                 )}
               </Button>
 
-              {/* Weight history list */}
               <div className="pt-2">
                 <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">
                   Verlauf der Gewichtseinträge
@@ -312,6 +364,36 @@ export function SettingsModal({
                 Ziele aktualisieren
               </Button>
             </form>
+          )}
+
+          {activeTab === 'backup' && (
+            <div className="space-y-4">
+              <div className="p-3 rounded-xl bg-zinc-950 border border-zinc-800 text-xs text-zinc-300">
+                Sichere all deine Mahlzeiten, Habits und Gewichtseinträge in einer JSON-Datei oder stelle sie wieder her.
+              </div>
+
+              <Button variant="outline" onClick={handleExportData} className="w-full justify-center">
+                <Download className="w-4 h-4 mr-2 text-emerald-400" />
+                Daten als JSON sichern (Export)
+              </Button>
+
+              <input
+                type="file"
+                accept=".json"
+                ref={fileInputRef}
+                onChange={handleImportData}
+                className="hidden"
+              />
+
+              <Button
+                variant="secondary"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full justify-center"
+              >
+                <Upload className="w-4 h-4 mr-2 text-cyan-400" />
+                Backup wiederherstellen (Import)
+              </Button>
+            </div>
           )}
 
           {activeTab === 'pwa' && (
