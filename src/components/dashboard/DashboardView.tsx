@@ -1,0 +1,128 @@
+'use client';
+
+import React from 'react';
+import { CalorieRing } from './CalorieRing';
+import { HabitQuickCheck } from './HabitQuickCheck';
+import { NutritionLog, Habit, Workout, DailyGoals } from '@/lib/types';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Camera, Dumbbell, Sparkles, Plus, Utensils, Heart } from 'lucide-react';
+
+interface DashboardViewProps {
+  meals: NutritionLog[];
+  habits: Habit[];
+  workouts: Workout[];
+  goals: DailyGoals;
+  todayDate: string;
+  onToggleHabit: (id: string) => void;
+  onNavigateTab: (tab: 'nutrition' | 'habits' | 'weekly') => void;
+}
+
+export function DashboardView({
+  meals,
+  habits,
+  workouts,
+  goals,
+  todayDate,
+  onToggleHabit,
+  onNavigateTab,
+}: DashboardViewProps) {
+  const todayMeals = meals.filter((m) => m.date === todayDate);
+  const todayWorkouts = workouts.filter((w) => w.date === todayDate);
+
+  const currentCalories = todayMeals.reduce((sum, m) => sum + m.calories, 0);
+  const currentProtein = todayMeals.reduce((sum, m) => sum + m.protein, 0);
+  const currentCarbs = todayMeals.reduce((sum, m) => sum + m.carbs, 0);
+  const currentFat = todayMeals.reduce((sum, m) => sum + m.fat, 0);
+  const caloriesBurned = todayWorkouts.reduce((sum, w) => sum + w.caloriesBurned, 0);
+
+  return (
+    <div className="space-y-6 pb-24">
+      {/* Calorie & Macro Progress */}
+      <CalorieRing
+        currentCalories={currentCalories}
+        targetCalories={goals.calories}
+        protein={{ current: currentProtein, target: goals.protein }}
+        carbs={{ current: currentCarbs, target: goals.carbs }}
+        fat={{ current: currentFat, target: goals.fat }}
+        caloriesBurned={caloriesBurned}
+      />
+
+      {/* Quick Action CTA Cards */}
+      <div className="grid grid-cols-2 gap-3">
+        <button
+          onClick={() => onNavigateTab('nutrition')}
+          className="p-4 rounded-2xl bg-gradient-to-br from-emerald-900/40 to-teal-950/60 border border-emerald-500/30 text-left transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg group"
+        >
+          <div className="p-2.5 rounded-xl bg-emerald-500 text-zinc-950 w-fit mb-3 group-hover:rotate-6 transition-transform">
+            <Camera className="w-5 h-5" />
+          </div>
+          <h3 className="font-bold text-white text-sm">Foto-Tracker</h3>
+          <p className="text-[11px] text-zinc-300 mt-0.5">Mahlzeit mit KI scannen</p>
+        </button>
+
+        <button
+          onClick={() => onNavigateTab('weekly')}
+          className="p-4 rounded-2xl bg-gradient-to-br from-teal-900/40 to-cyan-950/60 border border-cyan-500/30 text-left transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg group"
+        >
+          <div className="p-2.5 rounded-xl bg-cyan-500 text-zinc-950 w-fit mb-3 group-hover:rotate-6 transition-transform">
+            <Sparkles className="w-5 h-5" />
+          </div>
+          <h3 className="font-bold text-white text-sm">Wochen-KI</h3>
+          <p className="text-[11px] text-zinc-300 mt-0.5">Report & Tipps abrufen</p>
+        </button>
+      </div>
+
+      {/* Today Habits Check-off */}
+      <HabitQuickCheck
+        habits={habits}
+        todayDate={todayDate}
+        onToggleHabit={onToggleHabit}
+        onGoToHabitsTab={() => onNavigateTab('habits')}
+      />
+
+      {/* Today Workouts Summary */}
+      <Card className="bg-zinc-900/90 border-zinc-800">
+        <CardHeader className="pb-3 flex flex-row items-center justify-between">
+          <CardTitle className="text-base font-bold flex items-center space-x-2">
+            <Dumbbell className="w-4 h-4 text-cyan-400" />
+            <span>Heutige Workouts ({todayWorkouts.length})</span>
+          </CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onNavigateTab('habits')}
+            className="text-xs text-zinc-400 hover:text-cyan-400 p-1 h-auto"
+          >
+            + Eintragen
+          </Button>
+        </CardHeader>
+
+        <CardContent className="space-y-2">
+          {todayWorkouts.length === 0 ? (
+            <div className="text-center py-4 text-zinc-500 text-xs">
+              Noch kein Training für heute eingetragen.
+            </div>
+          ) : (
+            todayWorkouts.map((workout) => (
+              <div
+                key={workout.id}
+                className="p-3 rounded-xl bg-zinc-950/50 border border-zinc-800/80 flex items-center justify-between"
+              >
+                <div>
+                  <h4 className="text-sm font-semibold text-white">{workout.title}</h4>
+                  <p className="text-xs text-zinc-400">
+                    {workout.durationMinutes} Min • {workout.caloriesBurned} kcal verbrannt
+                  </p>
+                </div>
+                <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                  {workout.type}
+                </span>
+              </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
