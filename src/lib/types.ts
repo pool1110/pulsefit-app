@@ -7,6 +7,35 @@ export interface UserProfile {
   weightHistory: Array<{ date: string; weight: number }>;
 }
 
+export interface ExerciseItem {
+  id: string;
+  name: string;
+  category: 'office' | 'strength' | 'cardio' | 'flexibility';
+  targetMuscles: string;
+  description: string;
+  defaultRepsOrDuration: string; // e.g. "3 Sätze x 15 Wdh." or "45 Sekunden"
+  equipment: 'none' | 'chair' | 'dumbbells' | 'gym';
+}
+
+export interface PlannedWorkoutDay {
+  dayName: string; // e.g. "Montag", "Dienstag"...
+  focus: string; // e.g. "Oberkörper & Büro-Snacks"
+  isRestDay: boolean;
+  exercises: Array<{
+    name: string;
+    setsAndReps: string;
+    notes?: string;
+  }>;
+}
+
+export interface WeeklyWorkoutPlan {
+  id: string;
+  createdAt: string;
+  title: string;
+  goal: string;
+  days: PlannedWorkoutDay[];
+}
+
 export interface NutritionLog {
   id: string;
   name: string;

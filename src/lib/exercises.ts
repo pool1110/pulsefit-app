@@ -1,0 +1,108 @@
+import { ExerciseItem } from './types';
+
+export const EXERCISE_LIBRARY: ExerciseItem[] = [
+  // Büro & Ohne Geräte
+  {
+    id: 'ex_squats',
+    name: 'Schreibtisch-Kniebeugen (Squats)',
+    category: 'office',
+    targetMuscles: 'Beine, Po, Rumpf',
+    description: 'Füße hüftbreit stellen, langsam mit dem Po Richtung Stuhlkante absenken und kraftvoll aufstehen.',
+    defaultRepsOrDuration: '3 Sätze x 15 Wdh.',
+    equipment: 'none',
+  },
+  {
+    id: 'ex_desk_pushups',
+    name: 'Tischkanten-Liegestütze',
+    category: 'office',
+    targetMuscles: 'Brust, Schultern, Trizeps',
+    description: 'Hände schulterbreit an die stabile Tischkante legen, Körper unter Spannung absenken und herausdrücken.',
+    defaultRepsOrDuration: '3 Sätze x 12 Wdh.',
+    equipment: 'chair',
+  },
+  {
+    id: 'ex_wall_sit',
+    name: 'Wandsitz (Wall Sit)',
+    category: 'office',
+    targetMuscles: 'Oberschenkel, Rumpf',
+    description: 'Rücken flach an die Wand lehnen, in 90°-Winkel absenken und Position halten.',
+    defaultRepsOrDuration: '3 Sätze x 45 Sek.',
+    equipment: 'none',
+  },
+  {
+    id: 'ex_chair_dips',
+    name: 'Stuhl-Dips',
+    category: 'office',
+    targetMuscles: 'Trizeps, Schultern',
+    description: 'Hände auf Stuhlkante stützen, Beine vorstrecken, Ellbogen beugen und wieder hochdrücken.',
+    defaultRepsOrDuration: '3 Sätze x 10 Wdh.',
+    equipment: 'chair',
+  },
+  {
+    id: 'ex_calf_raises',
+    name: 'Wadenheben im Stehen',
+    category: 'office',
+    targetMuscles: 'Waden',
+    description: 'Auf die Zehenspitzen drücken, oben kurz halten und langsam absenken.',
+    defaultRepsOrDuration: '3 Sätze x 20 Wdh.',
+    equipment: 'none',
+  },
+  {
+    id: 'ex_lunges',
+    name: 'Ausfallschritte (Walking Lunges)',
+    category: 'office',
+    targetMuscles: 'Oberschenkel, Po',
+    description: 'Großer Schritt nach vorne, hinteres Knie kurz vor den Boden senken, aufrecht bleiben.',
+    defaultRepsOrDuration: '3 Sätze x 12 Wdh. je Seite',
+    equipment: 'none',
+  },
+
+  // Kraft & Gym
+  {
+    id: 'ex_bench',
+    name: 'Bankdrücken (Bench Press)',
+    category: 'strength',
+    targetMuscles: 'Brust, Vordere Schulter, Trizeps',
+    description: 'Langhantel kontrolliert zur Brust senken und explosiv nach oben drücken.',
+    defaultRepsOrDuration: '4 Sätze x 8 Wdh.',
+    equipment: 'gym',
+  },
+  {
+    id: 'ex_pullups',
+    name: 'Klimmzüge (Pull-ups)',
+    category: 'strength',
+    targetMuscles: 'Latissimus, Bizeps, Oberer Rücken',
+    description: 'Im Übergriff greifen, Brust zur Stange ziehen und kontrolliert ablassen.',
+    defaultRepsOrDuration: '4 Sätze x 8 Wdh.',
+    equipment: 'gym',
+  },
+  {
+    id: 'ex_deadlift',
+    name: 'Kreuzheben (Deadlift)',
+    category: 'strength',
+    targetMuscles: 'Rückenstrecker, Beinbeuger, Po',
+    description: 'Gerader Rücken, Hantel nah am Körper aus den Beinen und dem Rücken heben.',
+    defaultRepsOrDuration: '3 Sätze x 5 Wdh.',
+    equipment: 'gym',
+  },
+
+  // Ausdauer & HIIT
+  {
+    id: 'ex_jumping_jacks',
+    name: 'Hampelmänner (Jumping Jacks)',
+    category: 'cardio',
+    targetMuscles: 'Ganzkörper, Herz-Kreislauf',
+    description: 'Rhythmisch springen, Arme über dem Kopf zusammenführen.',
+    defaultRepsOrDuration: '3 Sätze x 45 Sek.',
+    equipment: 'none',
+  },
+  {
+    id: 'ex_mountain_climbers',
+    name: 'Mountain Climbers',
+    category: 'cardio',
+    targetMuscles: 'Bauchnabel, Schultern, Ausdauer',
+    description: 'Liegestützposition, Knie abwechselnd dynamisch zur Brust ziehen.',
+    defaultRepsOrDuration: '3 Sätze x 40 Sek.',
+    equipment: 'none',
+  },
+];

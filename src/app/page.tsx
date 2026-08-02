@@ -20,7 +20,9 @@ export default function Home() {
     goals,
     weeklyReports,
     profile,
+    workoutPlan,
     geminiApiKey,
+    setWorkoutPlan,
     updateProfile,
     addWeightLog,
     addMeal,
@@ -110,12 +112,16 @@ export default function Home() {
           <HabitsView
             habits={habits}
             workouts={workouts}
+            profile={profile}
+            workoutPlan={workoutPlan}
             todayDate={todayStr}
+            geminiApiKey={geminiApiKey}
             onToggleHabit={toggleHabit}
             onAddHabit={addHabit}
             onDeleteHabit={deleteHabit}
             onAddWorkout={addWorkout}
             onDeleteWorkout={deleteWorkout}
+            onSavePlan={setWorkoutPlan}
           />
         )}
 

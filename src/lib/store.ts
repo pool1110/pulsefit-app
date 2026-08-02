@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { NutritionLog, Habit, Workout, DailyGoals, WeeklyReport, UserProfile } from './types';
+import { NutritionLog, Habit, Workout, DailyGoals, WeeklyReport, UserProfile, WeeklyWorkoutPlan } from './types';
 
 const STORAGE_KEYS = {
   MEALS: 'fit_app_meals',
@@ -11,6 +11,7 @@ const STORAGE_KEYS = {
   REPORTS: 'fit_app_weekly_reports',
   API_KEY: 'fit_app_gemini_key',
   PROFILE: 'fit_app_profile',
+  WORKOUT_PLAN: 'fit_app_workout_plan',
 };
 
 const DEFAULT_GOALS: DailyGoals = {
@@ -135,6 +136,7 @@ export function useAppStore() {
   const [goals, setGoals] = useState<DailyGoals>(DEFAULT_GOALS);
   const [weeklyReports, setWeeklyReports] = useState<WeeklyReport[]>([]);
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
+  const [workoutPlan, setWorkoutPlanState] = useState<WeeklyWorkoutPlan | null>(null);
   const [geminiApiKey, setGeminiApiKey] = useState<string>('');
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
@@ -146,6 +148,7 @@ export function useAppStore() {
       const storedGoals = localStorage.getItem(STORAGE_KEYS.GOALS);
       const storedReports = localStorage.getItem(STORAGE_KEYS.REPORTS);
       const storedProfile = localStorage.getItem(STORAGE_KEYS.PROFILE);
+      const storedPlan = localStorage.getItem(STORAGE_KEYS.WORKOUT_PLAN);
       const storedKey = localStorage.getItem(STORAGE_KEYS.API_KEY);
 
       setMeals(storedMeals ? JSON.parse(storedMeals) : INITIAL_MEALS);
@@ -154,6 +157,7 @@ export function useAppStore() {
       setGoals(storedGoals ? JSON.parse(storedGoals) : DEFAULT_GOALS);
       setWeeklyReports(storedReports ? JSON.parse(storedReports) : []);
       setProfile(storedProfile ? JSON.parse(storedProfile) : DEFAULT_PROFILE);
+      if (storedPlan) setWorkoutPlanState(JSON.parse(storedPlan));
       if (storedKey) setGeminiApiKey(storedKey);
     } catch (e) {
       console.error('Failed to load local data', e);
@@ -161,6 +165,11 @@ export function useAppStore() {
       setIsLoaded(true);
     }
   }, []);
+
+  const setWorkoutPlan = (plan: WeeklyWorkoutPlan) => {
+    setWorkoutPlanState(plan);
+    localStorage.setItem(STORAGE_KEYS.WORKOUT_PLAN, JSON.stringify(plan));
+  };
 
   const updateProfile = (updatedProfile: Partial<UserProfile>) => {
     const newProfile = { ...profile, ...updatedProfile };
@@ -287,7 +296,9 @@ export function useAppStore() {
     goals,
     weeklyReports,
     profile,
+    workoutPlan,
     geminiApiKey,
+    setWorkoutPlan,
     updateProfile,
     addWeightLog,
     addMeal,

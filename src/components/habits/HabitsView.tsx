@@ -4,37 +4,47 @@ import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Habit, Workout } from '@/lib/types';
-import { CheckCircle2, Circle, Flame, Plus, Dumbbell, Trash2, Trophy, Calendar, Timer } from 'lucide-react';
+import { Habit, Workout, UserProfile, WeeklyWorkoutPlan } from '@/lib/types';
+import { CheckCircle2, Circle, Flame, Plus, Dumbbell, Trash2, Trophy, Calendar, Timer, Sparkles } from 'lucide-react';
 import { AddHabitModal } from './AddHabitModal';
 import { AddWorkoutModal } from './AddWorkoutModal';
 import { WorkoutTimerModal } from './WorkoutTimerModal';
+import { WorkoutPlanGeneratorModal } from './WorkoutPlanGeneratorModal';
 import confetti from 'canvas-confetti';
 
 interface HabitsViewProps {
   habits: Habit[];
   workouts: Workout[];
+  profile: UserProfile;
+  workoutPlan: WeeklyWorkoutPlan | null;
   todayDate: string;
+  geminiApiKey: string;
   onToggleHabit: (id: string) => void;
   onAddHabit: (habit: Omit<Habit, 'id' | 'completedDates' | 'currentStreak' | 'bestStreak' | 'createdAt'>) => void;
   onDeleteHabit: (id: string) => void;
   onAddWorkout: (workout: Omit<Workout, 'id'>) => void;
   onDeleteWorkout: (id: string) => void;
+  onSavePlan: (plan: WeeklyWorkoutPlan) => void;
 }
 
 export function HabitsView({
   habits,
   workouts,
+  profile,
+  workoutPlan,
   todayDate,
+  geminiApiKey,
   onToggleHabit,
   onAddHabit,
   onDeleteHabit,
   onAddWorkout,
   onDeleteWorkout,
+  onSavePlan,
 }: HabitsViewProps) {
   const [isHabitModalOpen, setIsHabitModalOpen] = useState(false);
   const [isWorkoutModalOpen, setIsWorkoutModalOpen] = useState(false);
   const [isTimerModalOpen, setIsTimerModalOpen] = useState(false);
+  const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [filterCategory, setFilterCategory] = useState<string>('all');
 
   const handleToggle = (id: string, isCurrentlyDone: boolean) => {
@@ -58,36 +68,73 @@ export function HabitsView({
       {/* Header Actions */}
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-white">Habits & Workouts</h2>
-        <div className="flex space-x-2">
+        <div className="flex space-x-1.5 overflow-x-auto no-scrollbar">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setIsTimerModalOpen(true)}
-            className="border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
-            title="Pausen- & Exercise-Timer"
+            onClick={() => setIsPlanModalOpen(true)}
+            className="border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10 text-xs px-2.5"
           >
-            <Timer className="w-4 h-4 mr-1" />
-            Timer
+            <Sparkles className="w-3.5 h-3.5 mr-1" />
+            KI-Plan
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setIsWorkoutModalOpen(true)}
-            className="border-zinc-700 text-zinc-200 hover:bg-zinc-800"
+            onClick={() => setIsTimerModalOpen(true)}
+            className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 text-xs px-2.5"
           >
-            <Dumbbell className="w-4 h-4 mr-1 text-cyan-400" />
-            + Workout
+            <Timer className="w-3.5 h-3.5 mr-1 text-amber-400" />
+            Timer
           </Button>
           <Button
             variant="default"
             size="sm"
             onClick={() => setIsHabitModalOpen(true)}
+            className="text-xs px-2.5"
           >
-            <Plus className="w-4 h-4 mr-1" />
-            + Habit
+            <Plus className="w-3.5 h-3.5 mr-1" />
+            Habit
           </Button>
         </div>
       </div>
+
+      {/* Active KI Workout Plan Summary */}
+      {workoutPlan && (
+        <Card className="bg-gradient-to-r from-teal-950/60 to-zinc-900 border-emerald-500/40 p-4">
+          <div className="flex justify-between items-start mb-2">
+            <div>
+              <span className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">Aktiver KI-Trainingsplan</span>
+              <h3 className="text-base font-bold text-white mt-0.5">{workoutPlan.title}</h3>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsPlanModalOpen(true)}
+              className="text-xs text-emerald-400 hover:text-emerald-300 p-1 h-auto"
+            >
+              Plan ändern
+            </Button>
+          </div>
+          <p className="text-xs text-zinc-300">Ziel: {workoutPlan.goal}</p>
+
+          <div className="mt-3 grid grid-cols-7 gap-1 text-center">
+            {workoutPlan.days.map((day, idx) => (
+              <div
+                key={idx}
+                className={`p-1.5 rounded-lg text-[9px] font-bold border ${
+                  day.isRestDay
+                    ? 'bg-zinc-950/60 border-zinc-800 text-zinc-500'
+                    : 'bg-emerald-500/20 border-emerald-500/30 text-emerald-300'
+                }`}
+              >
+                <div className="truncate">{day.dayName.slice(0, 2)}</div>
+                <div className="text-[8px] mt-0.5 text-zinc-400 truncate">{day.isRestDay ? 'Ruhe' : 'Sport'}</div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {/* Habits Section */}
       <Card className="bg-zinc-900/90 border-zinc-800">
@@ -262,6 +309,13 @@ export function HabitsView({
       <WorkoutTimerModal
         isOpen={isTimerModalOpen}
         onClose={() => setIsTimerModalOpen(false)}
+      />
+      <WorkoutPlanGeneratorModal
+        isOpen={isPlanModalOpen}
+        onClose={() => setIsPlanModalOpen(false)}
+        profile={profile}
+        geminiApiKey={geminiApiKey}
+        onSavePlan={onSavePlan}
       />
     </div>
   );
