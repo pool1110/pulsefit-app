@@ -40,18 +40,17 @@ export function OnboardingModal({
 
   if (!isOpen) return null;
 
-  // Calculate BMR & TDEE based on Mifflin-St Jeor safely
   const calculateCalculatedGoals = (): DailyGoals => {
     const validWeight = Number(weight) || 81;
     const validHeight = Number(height) || 180;
     const validAge = Number(age) || 37;
 
     let bmr = 10 * validWeight + 6.25 * validHeight - 5 * validAge + (gender === 'male' ? 5 : -161);
-    let tdee = bmr * 1.35; // Moderate activity level with office work + exercise
+    let tdee = bmr * 1.35;
 
     let targetCal = tdee;
     if (fitnessGoal === 'weight_loss') {
-      targetCal = Math.max(1500, tdee - 500); // 500 kcal deficit for safe weight loss
+      targetCal = Math.max(1500, tdee - 500);
     } else if (fitnessGoal === 'muscle_gain') {
       targetCal = tdee + 300;
     }
@@ -275,20 +274,20 @@ export function OnboardingModal({
         </CardContent>
 
         {/* Footer Navigation */}
-        <CardFooter className="flex space-x-3 pt-3 border-t border-zinc-800 bg-zinc-950/50 shrink-0">
+        <CardFooter className="flex space-x-2 pt-3 border-t border-zinc-800 bg-zinc-950/50 shrink-0">
           {step > 1 && (
-            <Button type="button" variant="outline" onClick={() => setStep(step - 1)} className="w-1/3">
-              <ArrowLeft className="w-4 h-4 mr-1" /> Zurück
+            <Button type="button" variant="outline" onClick={() => setStep(step - 1)} className="w-28 text-xs shrink-0">
+              <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Zurück
             </Button>
           )}
 
           {step < 3 ? (
-            <Button type="button" variant="default" onClick={() => setStep(step + 1)} className={step === 1 ? 'w-full' : 'w-2/3'}>
-              Weiter <ArrowRight className="w-4 h-4 ml-1" />
+            <Button type="button" variant="default" onClick={() => setStep(step + 1)} className="flex-1 text-xs font-bold">
+              Weiter <ArrowRight className="w-3.5 h-3.5 ml-1" />
             </Button>
           ) : (
-            <Button type="button" variant="gradient" onClick={handleFinish} className="w-full text-base font-extrabold">
-              <Check className="w-5 h-5 mr-2" />
+            <Button type="button" variant="gradient" onClick={handleFinish} className="flex-1 text-xs font-bold px-2 whitespace-nowrap">
+              <Check className="w-4 h-4 mr-1 shrink-0" />
               Ziel festlegen & Starten
             </Button>
           )}
