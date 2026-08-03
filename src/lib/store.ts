@@ -34,6 +34,7 @@ const DEFAULT_PROFILE: UserProfile = {
   height: 180,
   gender: 'male',
   stepGoal: 6000,
+  onboardingCompleted: false,
   weightHistory: [
     { date: getTodayString(14), weight: 82.5 },
     { date: getTodayString(7), weight: 81.7 },
@@ -149,9 +150,11 @@ export function useAppStore() {
   };
 
   const addSleepLog = (hours: number, quality: 'good' | 'average' | 'poor', dateStr: string = getTodayString(0)) => {
-    const newLogs = [...sleepLogs.filter((s) => s.date !== dateStr), { date: dateStr, hours, quality }];
-    setSleepLogs(newLogs);
-    localStorage.setItem(prefix + 'sleep', JSON.stringify(newLogs));
+    setSleepLogs((prev) => {
+      const newLogs = [...prev.filter((s) => s.date !== dateStr), { date: dateStr, hours, quality }];
+      localStorage.setItem(prefix + 'sleep', JSON.stringify(newLogs));
+      return newLogs;
+    });
   };
 
   const setWorkoutPlan = (plan: WeeklyWorkoutPlan) => {
@@ -160,69 +163,80 @@ export function useAppStore() {
   };
 
   const updateProfile = (updatedProfile: Partial<UserProfile>) => {
-    const newProfile = { ...profile, ...updatedProfile };
-    setProfile(newProfile);
-    localStorage.setItem(prefix + 'profile', JSON.stringify(newProfile));
+    setProfile((prevProfile) => {
+      const newProfile = { ...prevProfile, ...updatedProfile };
+      localStorage.setItem(prefix + 'profile', JSON.stringify(newProfile));
+      return newProfile;
+    });
   };
 
   const addWeightLog = (weight: number, dateStr: string = getTodayString(0)) => {
-    const newHistory = [...profile.weightHistory.filter(w => w.date !== dateStr), { date: dateStr, weight }];
-    newHistory.sort((a, b) => a.date.localeCompare(b.date));
-    const newProfile: UserProfile = {
-      ...profile,
-      weight,
-      weightHistory: newHistory,
-    };
-    setProfile(newProfile);
-    localStorage.setItem(prefix + 'profile', JSON.stringify(newProfile));
+    setProfile((prevProfile) => {
+      const existingHistory = prevProfile.weightHistory || [];
+      const newHistory = [...existingHistory.filter(w => w.date !== dateStr), { date: dateStr, weight }];
+      newHistory.sort((a, b) => a.date.localeCompare(b.date));
+      const newProfile: UserProfile = {
+        ...prevProfile,
+        weight,
+        weightHistory: newHistory,
+      };
+      localStorage.setItem(prefix + 'profile', JSON.stringify(newProfile));
+      return newProfile;
+    });
   };
 
   const addMeal = (meal: Omit<NutritionLog, 'id'>) => {
     const newMeal: NutritionLog = { ...meal, id: 'm_' + Date.now() };
-    const updated = [newMeal, ...meals];
-    setMeals(updated);
-    localStorage.setItem(prefix + 'meals', JSON.stringify(updated));
+    setMeals((prev) => {
+      const updated = [newMeal, ...prev];
+      localStorage.setItem(prefix + 'meals', JSON.stringify(updated));
+      return updated;
+    });
     return newMeal;
   };
 
   const deleteMeal = (id: string) => {
-    const updated = meals.filter(m => m.id !== id);
-    setMeals(updated);
-    localStorage.setItem(prefix + 'meals', JSON.stringify(updated));
+    setMeals((prev) => {
+      const updated = prev.filter(m => m.id !== id);
+      localStorage.setItem(prefix + 'meals', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const toggleHabit = (id: string, date: string = getTodayString(0)) => {
-    const updated = habits.map(h => {
-      if (h.id !== id) return h;
-      const isDone = h.completedDates.includes(date);
-      let newDates = isDone
-        ? h.completedDates.filter(d => d !== date)
-        : [...h.completedDates, date];
+    setHabits((prev) => {
+      const updated = prev.map(h => {
+        if (h.id !== id) return h;
+        const isDone = h.completedDates.includes(date);
+        let newDates = isDone
+          ? h.completedDates.filter(d => d !== date)
+          : [...h.completedDates, date];
 
-      let streak = 0;
-      let checkDate = new Date();
-      while (true) {
-        const dStr = checkDate.toISOString().split('T')[0];
-        if (newDates.includes(dStr)) {
-          streak++;
-          checkDate.setDate(checkDate.getDate() - 1);
-        } else if (dStr === date && !isDone) {
-          streak++;
-          checkDate.setDate(checkDate.getDate() - 1);
-        } else {
-          break;
+        let streak = 0;
+        let checkDate = new Date();
+        while (true) {
+          const dStr = checkDate.toISOString().split('T')[0];
+          if (newDates.includes(dStr)) {
+            streak++;
+            checkDate.setDate(checkDate.getDate() - 1);
+          } else if (dStr === date && !isDone) {
+            streak++;
+            checkDate.setDate(checkDate.getDate() - 1);
+          } else {
+            break;
+          }
         }
-      }
 
-      return {
-        ...h,
-        completedDates: newDates,
-        currentStreak: streak,
-        bestStreak: Math.max(h.bestStreak, streak),
-      };
+        return {
+          ...h,
+          completedDates: newDates,
+          currentStreak: streak,
+          bestStreak: Math.max(h.bestStreak, streak),
+        };
+      });
+      localStorage.setItem(prefix + 'habits', JSON.stringify(updated));
+      return updated;
     });
-    setHabits(updated);
-    localStorage.setItem(prefix + 'habits', JSON.stringify(updated));
   };
 
   const addHabit = (habitData: Omit<Habit, 'id' | 'completedDates' | 'currentStreak' | 'bestStreak' | 'createdAt'>) => {
@@ -234,28 +248,36 @@ export function useAppStore() {
       bestStreak: 0,
       createdAt: getTodayString(0),
     };
-    const updated = [...habits, newHabit];
-    setHabits(updated);
-    localStorage.setItem(prefix + 'habits', JSON.stringify(updated));
+    setHabits((prev) => {
+      const updated = [...prev, newHabit];
+      localStorage.setItem(prefix + 'habits', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const deleteHabit = (id: string) => {
-    const updated = habits.filter(h => h.id !== id);
-    setHabits(updated);
-    localStorage.setItem(prefix + 'habits', JSON.stringify(updated));
+    setHabits((prev) => {
+      const updated = prev.filter(h => h.id !== id);
+      localStorage.setItem(prefix + 'habits', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const addWorkout = (workoutData: Omit<Workout, 'id'>) => {
     const newWorkout: Workout = { ...workoutData, id: 'w_' + Date.now() };
-    const updated = [newWorkout, ...workouts];
-    setWorkouts(updated);
-    localStorage.setItem(prefix + 'workouts', JSON.stringify(updated));
+    setWorkouts((prev) => {
+      const updated = [newWorkout, ...prev];
+      localStorage.setItem(prefix + 'workouts', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const deleteWorkout = (id: string) => {
-    const updated = workouts.filter(w => w.id !== id);
-    setWorkouts(updated);
-    localStorage.setItem(prefix + 'workouts', JSON.stringify(updated));
+    setWorkouts((prev) => {
+      const updated = prev.filter(w => w.id !== id);
+      localStorage.setItem(prefix + 'workouts', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const updateGoals = (newGoals: DailyGoals) => {
@@ -270,9 +292,11 @@ export function useAppStore() {
 
   const addWeeklyReport = (report: Omit<WeeklyReport, 'id'>) => {
     const newReport: WeeklyReport = { ...report, id: 'rep_' + Date.now() };
-    const updated = [newReport, ...weeklyReports];
-    setWeeklyReports(updated);
-    localStorage.setItem(prefix + 'reports', JSON.stringify(updated));
+    setWeeklyReports((prev) => {
+      const updated = [newReport, ...prev];
+      localStorage.setItem(prefix + 'reports', JSON.stringify(updated));
+      return updated;
+    });
     return newReport;
   };
 
