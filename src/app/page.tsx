@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useAppStore } from '@/lib/store';
 import { Header } from '@/components/layout/Header';
 import { BottomNav, TabType } from '@/components/layout/BottomNav';
+import { UpdateBanner } from '@/components/layout/UpdateBanner';
 import { DashboardView } from '@/components/dashboard/DashboardView';
 import { NutritionView } from '@/components/nutrition/NutritionView';
 import { HabitsView } from '@/components/habits/HabitsView';
@@ -92,6 +93,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col selection:bg-emerald-500 selection:text-zinc-950">
+      {/* Floating Automatic Update Notification Banner */}
+      <UpdateBanner />
+
       {/* App Header with Family Profile Switcher */}
       <Header
         users={users}
