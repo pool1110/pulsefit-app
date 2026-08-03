@@ -51,6 +51,7 @@ export default function Home() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showPwaGuideOnly, setShowPwaGuideOnly] = useState(false);
   const [isInstallable, setIsInstallable] = useState(false);
+  const [forceClosedOnboarding, setForceClosedOnboarding] = useState(false);
 
   const todayStr = getTodayString(0);
 
@@ -61,6 +62,11 @@ export default function Home() {
       setIsInstallable(true);
     }
   }, []);
+
+  const handleUserSwitch = (userId: string) => {
+    setForceClosedOnboarding(false);
+    switchUser(userId);
+  };
 
   const totalStreak = habits.reduce((max, h) => Math.max(max, h.currentStreak), 0);
 
@@ -73,12 +79,15 @@ export default function Home() {
     );
   }
 
-  const isOnboardingOpen = !profile.onboardingCompleted;
+  const isOnboardingOpen = !profile.onboardingCompleted && !forceClosedOnboarding;
 
   const handleCompleteOnboarding = (profileData: any, newGoals: any) => {
+    setForceClosedOnboarding(true);
     updateProfile(profileData);
     updateGoals(newGoals);
-    addWeightLog(profileData.weight);
+    if (profileData.weight) {
+      addWeightLog(profileData.weight);
+    }
   };
 
   return (
@@ -87,7 +96,7 @@ export default function Home() {
       <Header
         users={users}
         activeUser={activeUser}
-        onSwitchUser={switchUser}
+        onSwitchUser={handleUserSwitch}
         onAddUser={addUser}
         onOpenSettings={() => {
           setShowPwaGuideOnly(false);

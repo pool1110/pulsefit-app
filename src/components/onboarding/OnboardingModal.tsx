@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Sparkles, Target, Scale, User, Check, ArrowRight, ArrowLeft, Flame } from 'lucide-react';
+import { Target, Check, ArrowRight, ArrowLeft, Flame } from 'lucide-react';
 import { UserProfile, DailyGoals } from '@/lib/types';
 
 interface OnboardingModalProps {
@@ -22,10 +22,10 @@ export function OnboardingModal({
   const [step, setStep] = useState(1);
 
   // Step 1: Body Metrics
-  const [age, setAge] = useState(currentProfile.age || 37);
-  const [weight, setWeight] = useState(currentProfile.weight || 81);
-  const [targetWeight, setTargetWeight] = useState(currentProfile.targetWeight || 70);
-  const [height, setHeight] = useState(currentProfile.height || 180);
+  const [age, setAge] = useState<number>(currentProfile.age || 37);
+  const [weight, setWeight] = useState<number>(currentProfile.weight || 81);
+  const [targetWeight, setTargetWeight] = useState<number>(currentProfile.targetWeight || 70);
+  const [height, setHeight] = useState<number>(currentProfile.height || 180);
   const [gender, setGender] = useState<'male' | 'female' | 'other'>(currentProfile.gender || 'male');
 
   // Step 2: Goal
@@ -40,9 +40,13 @@ export function OnboardingModal({
 
   if (!isOpen) return null;
 
-  // Calculate BMR & TDEE based on Mifflin-St Jeor
+  // Calculate BMR & TDEE based on Mifflin-St Jeor safely
   const calculateCalculatedGoals = (): DailyGoals => {
-    let bmr = 10 * weight + 6.25 * height - 5 * age + (gender === 'male' ? 5 : -161);
+    const validWeight = Number(weight) || 81;
+    const validHeight = Number(height) || 180;
+    const validAge = Number(age) || 37;
+
+    let bmr = 10 * validWeight + 6.25 * validHeight - 5 * validAge + (gender === 'male' ? 5 : -161);
     let tdee = bmr * 1.35; // Moderate activity level with office work + exercise
 
     let targetCal = tdee;
@@ -52,11 +56,10 @@ export function OnboardingModal({
       targetCal = tdee + 300;
     }
 
-    const finalCal = Math.round(targetCal);
-    // 30% Protein, 40% Carbs, 30% Fat
-    const proteinGrams = Math.round((finalCal * 0.3) / 4);
-    const carbsGrams = Math.round((finalCal * 0.4) / 4);
-    const fatGrams = Math.round((finalCal * 0.3) / 9);
+    const finalCal = Math.round(targetCal) || 1900;
+    const proteinGrams = Math.round((finalCal * 0.3) / 4) || 140;
+    const carbsGrams = Math.round((finalCal * 0.4) / 4) || 190;
+    const fatGrams = Math.round((finalCal * 0.3) / 9) || 60;
 
     return {
       calories: finalCal,
@@ -68,13 +71,21 @@ export function OnboardingModal({
 
   const calculatedGoals = calculateCalculatedGoals();
 
-  const handleFinish = () => {
+  const handleFinish = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const validAge = Number(age) || 37;
+    const validWeight = Number(weight) || 81;
+    const validTargetWeight = Number(targetWeight) || 70;
+    const validHeight = Number(height) || 180;
+
     onCompleteOnboarding(
       {
-        age,
-        weight,
-        targetWeight,
-        height,
+        age: validAge,
+        weight: validWeight,
+        targetWeight: validTargetWeight,
+        height: validHeight,
         gender,
         fitnessGoal,
         dietPreference,
@@ -107,7 +118,7 @@ export function OnboardingModal({
           {step === 1 && (
             <div className="space-y-4">
               <p className="text-xs text-zinc-300 leading-relaxed">
-                Damit deine **Gemini 3.5 KI** deinen Kalorienbedarf exakt berechnen kann, trage deine aktuellen Daten ein:
+                Damit deine <strong>Gemini 3.5 KI</strong> deinen Kalorienbedarf exakt berechnen kann, trage deine aktuellen Daten ein:
               </p>
 
               <div className="grid grid-cols-2 gap-3">
@@ -118,8 +129,8 @@ export function OnboardingModal({
                   <input
                     type="number"
                     step="0.1"
-                    value={weight}
-                    onChange={(e) => setWeight(Number(e.target.value))}
+                    value={weight || ''}
+                    onChange={(e) => setWeight(parseFloat(e.target.value) || 0)}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-950 border border-zinc-800 text-white font-bold text-sm focus:outline-none focus:border-emerald-500"
                   />
                 </div>
@@ -132,8 +143,8 @@ export function OnboardingModal({
                   <input
                     type="number"
                     step="0.1"
-                    value={targetWeight}
-                    onChange={(e) => setTargetWeight(Number(e.target.value))}
+                    value={targetWeight || ''}
+                    onChange={(e) => setTargetWeight(parseFloat(e.target.value) || 0)}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-950 border border-emerald-500/50 text-emerald-400 font-black text-sm focus:outline-none focus:border-emerald-400"
                   />
                 </div>
@@ -144,8 +155,8 @@ export function OnboardingModal({
                   <label className="block text-[11px] font-semibold text-zinc-300 mb-1">Alter</label>
                   <input
                     type="number"
-                    value={age}
-                    onChange={(e) => setAge(Number(e.target.value))}
+                    value={age || ''}
+                    onChange={(e) => setAge(parseInt(e.target.value) || 0)}
                     className="w-full px-3 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-white text-sm"
                   />
                 </div>
@@ -154,8 +165,8 @@ export function OnboardingModal({
                   <label className="block text-[11px] font-semibold text-zinc-300 mb-1">Größe (cm)</label>
                   <input
                     type="number"
-                    value={height}
-                    onChange={(e) => setHeight(Number(e.target.value))}
+                    value={height || ''}
+                    onChange={(e) => setHeight(parseInt(e.target.value) || 0)}
                     className="w-full px-3 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-white text-sm"
                   />
                 </div>
@@ -174,7 +185,7 @@ export function OnboardingModal({
                 </div>
               </div>
 
-              {weight > targetWeight && (
+              {weight > targetWeight && targetWeight > 0 && (
                 <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 flex items-center space-x-2">
                   <Flame className="w-4 h-4 text-emerald-400 shrink-0" />
                   <span>
@@ -199,6 +210,7 @@ export function OnboardingModal({
                 { id: 'maintain', title: '⚖️ Gewicht halten & fit bleiben', desc: 'Ausgewogene Ernährung & regelmäßiges Training.' },
               ].map((item) => (
                 <button
+                  type="button"
                   key={item.id}
                   onClick={() => setFitnessGoal(item.id as any)}
                   className={`w-full p-3.5 rounded-2xl border text-left transition-all ${
@@ -265,17 +277,17 @@ export function OnboardingModal({
         {/* Footer Navigation */}
         <CardFooter className="flex space-x-3 pt-3 border-t border-zinc-800 bg-zinc-950/50 shrink-0">
           {step > 1 && (
-            <Button variant="outline" onClick={() => setStep(step - 1)} className="w-1/3">
+            <Button type="button" variant="outline" onClick={() => setStep(step - 1)} className="w-1/3">
               <ArrowLeft className="w-4 h-4 mr-1" /> Zurück
             </Button>
           )}
 
           {step < 3 ? (
-            <Button variant="default" onClick={() => setStep(step + 1)} className={step === 1 ? 'w-full' : 'w-2/3'}>
+            <Button type="button" variant="default" onClick={() => setStep(step + 1)} className={step === 1 ? 'w-full' : 'w-2/3'}>
               Weiter <ArrowRight className="w-4 h-4 ml-1" />
             </Button>
           ) : (
-            <Button variant="gradient" onClick={handleFinish} className="w-full text-base font-extrabold">
+            <Button type="button" variant="gradient" onClick={handleFinish} className="w-full text-base font-extrabold">
               <Check className="w-5 h-5 mr-2" />
               Ziel festlegen & Starten
             </Button>
